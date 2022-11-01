@@ -34,7 +34,7 @@ variable "health_check_path" {
 }
 # variable "container_image" {
 #   description = "Docker image to run in the ECS cluster"
-#   default     = "003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/sortlog-repository@sha256:093fac41e2e3dd76dcb29493fbd5716c1bec53355bebf33a6900179ffcceea43"//"public.ecr.aws/w2j2c5k5/youtube-local"
+#   default     = "public.ecr.aws/w2j2c5k5/youtube-local"//"public.ecr.aws/w2j2c5k5/youtube-local"
 # }
 variable "fargate_cpu" {
   description = "Fargate instance CPU units to provision (1 vCPU = 1024 CPU units)"

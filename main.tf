@@ -237,7 +237,7 @@ resource "aws_ecs_task_definition" "main" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
     name        = "${var.stack}-sortlogcontainer-${var.app_env}"
-    image       = "${aws_ecr_repository.sortlog.repository_url}:latest"//${var.container_image}:latest"  
+    image       = "${aws_ecr_repository.sortlog.repository_url}:latest"//"${var.container_image}:latest" //
     essential   = true
     environment= [
       {"name":"MONGO_URL","value":"mongodb+srv://admin:admin@sortlog-dev.tz5kdhn.mongodb.net/sortlog-dev"},
@@ -249,14 +249,14 @@ resource "aws_ecs_task_definition" "main" {
       containerPort = var.container_port
       hostPort      = var.container_port
     }]
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = "/ecs/${var.stack}-sortlogloggroup-${var.app_env}"
-        awslogs-stream-prefix = "ecs"
-        awslogs-region        = "ap-southeast-2"// change to your 
-      }
-    }
+    # logConfiguration = {
+    #   logDriver = "awslogs"
+    #   options = {
+    #     awslogs-group         = "/ecs/${var.stack}-sortlogloggroup-${var.app_env}"
+    #     awslogs-stream-prefix = "ecs"
+    #     awslogs-region        = "ap-southeast-2"// change to your 
+    #   }
+    # }
 #     secrets = var.container_secrets
   }])
 

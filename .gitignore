@@ -21,3 +21,4 @@ conf/env.json
 
 #
 .terraform 
+terraform.tfstate
