@@ -32,10 +32,10 @@ variable "container_port" {
 variable "health_check_path" {
   default = "/"
 }
-# variable "container_image" {
-#   description = "Docker image to run in the ECS cluster"
-#   default     = "003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/sortlog-repository"//"public.ecr.aws/w2j2c5k5/youtube-local"
-# }
+variable "container_image" {
+  description = "Docker image to run in the ECS cluster"
+  default     = "003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/sortlog-repository"//"public.ecr.aws/w2j2c5k5/youtube-local"
+}
 variable "fargate_cpu" {
   description = "Fargate instance CPU units to provision (1 vCPU = 1024 CPU units)"
   default     = "1024"
