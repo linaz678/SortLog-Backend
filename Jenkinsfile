@@ -15,9 +15,7 @@ pipeline {
              sh 'yarn install'
              
              }
-             
         }
-
         stage('yarn build') 
         {
             steps{
@@ -26,22 +24,35 @@ pipeline {
             //  sh 'sudo rm -r ./data'
              }
         } 
-         stage('Build Docker image') {
+        stage('Build Docker image') {
             steps {
                 sh 'docker build -t sortlogback .'
                 sh 'docker images --filter reference=sortlogback'
             }
         }
-        // stage('Run Docker Container') 
-        // {
-        //     environment{MONGO_URL=credentials('MONGO_URL')}
-        //     steps {
-        //         sh 'docker-compose up '
-        //     }
-        //   }
+        stage('TF Launch Instances'){
+            
+            steps {
+                withAWS(credentials: AWS_CRED, region: AWS_REGION) {
+                   
+                    
+                        sh '''
+                            export APP_ENV="UAT"
+                            terraform init -input=false
+                            terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
+                            terraform destroy \
+                               -var="app_env=${APP_ENV}"\
+                               --auto-approve
+                        '''
+                    
+                }
+            }
+        }
+        stage('Deliver for UAT') {
+            when {
+                branch 'UAT'
+            }
 
-
-        stage('upload backend to  ECR bucket') {
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION)        
                
@@ -59,3 +70,4 @@ pipeline {
 
     }
 }
+
