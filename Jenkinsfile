@@ -46,6 +46,7 @@ pipeline {
                         '''
                          script {
                                 ECR_REPO_NAME = sh(returnStdout: true, script: "terraform output repository_url")}
+                        sh "echo ${ECR_REPO_NAME}"
 
                     
                 }
@@ -61,11 +62,11 @@ pipeline {
                
                 {
                     echo "deploy to ECR "
-                    sh "echo ${repository_url}"
+                    sh "echo ${ECR_REPO_NAME}"
                     sh '''
-                    docker tag sortlogback ${repository_url}
-                    docker login -u AWS -p $(aws ecr get-login-password --region ap-southeast-2) ${repository_url}
-                    docker push ${repository_url}
+                    docker tag sortlogback ${ECR_REPO_NAME}
+                    docker login -u AWS -p $(aws ecr get-login-password --region ap-southeast-2) ${ECR_REPO_NAME}
+                    docker push ${ECR_REPO_NAME}
                     '''}
              
             }
