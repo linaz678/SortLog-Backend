@@ -237,10 +237,10 @@ resource "aws_ecs_task_definition" "main" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
     name        = "${var.stack}-sortlogcontainer-${var.app_env}"
-    image       = "aws_ecr_repository.sortlog.repository_url:latest"//"${var.container_image}:latest"
+    image       = "aws_ecr_repository.sortlog.repository_url:latest//"${var.container_image}:latest"
     essential   = true
     environment= [
-      
+      {"name":"MONGO_URL","value":"mongodb+srv://admin:admin@sortlog-dev.tz5kdhn.mongodb.net/sortlog-dev"},
       {"name": "auth_encryption_salt", "value": "some-salt"},
       {"name": "PORT", "value"= "3000"}
     ]
