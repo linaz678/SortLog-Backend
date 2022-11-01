@@ -60,7 +60,6 @@ pipeline {
                     echo "deploy to ECR "
                     sh "echo ${ECR_REPO_NAME}"
                     sh "docker tag sortlogback ${ECR_REPO_NAME}"
-                    // sh "docker login -u AWS -p $(aws ecr get-login-password --region ap-southeast-2) ${ECR_REPO_NAME}"
                     sh"aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin ${ECR_REPO_NAME}"
                     sh "docker push ${ECR_REPO_NAME}"
                 }

@@ -249,14 +249,14 @@ resource "aws_ecs_task_definition" "main" {
       containerPort = var.container_port
       hostPort      = var.container_port
     }]
-    # logConfiguration = {
-    #   logDriver = "awslogs"
-    #   options = {
-    #     awslogs-group         = "/ecs/${var.stack}-sortlogloggroup-${var.app_env}"
-    #     awslogs-stream-prefix = "ecs"
-    #     awslogs-region        = "ap-southeast-2"// change to your 
-    #   }
-    # }
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = "ecs/${var.stack}-sortlogloggroup-${var.app_env}"
+        awslogs-stream-prefix = "ecs"
+        awslogs-region        = "ap-southeast-2"// change to your 
+      }
+    }
 #     secrets = var.container_secrets
   }])
 
