@@ -1,44 +1,21 @@
 pipeline {
      agent any
-<<<<<<< HEAD
      
         //Install denpendencies 
-=======
-
-    environment{
-        CI ='true'
-        AWS_CRED        = 'AWS_sortlog' //Change to yours
-        AWS_REGION      = 'ap-southeast-2'
-    }
-
->>>>>>> fe171b930329ba6cd46afbbb46f9e811f373eda3
     stages{
         stage('Install dependency')
         {
             steps{
              echo "Installing packages"
-<<<<<<< HEAD
-             sh 'yarn install --force'
-             }          
-=======
              sh 'yarn install'
              
              }
              
->>>>>>> fe171b930329ba6cd46afbbb46f9e811f373eda3
         }
 
         stage('yarn build') 
         {
             steps{
-<<<<<<< HEAD
-             sh "yarn export"
-             sh 'ls -la ./out'
-             }
-        } 
-    }
-}
-=======
              sh "yarn build "
              sh 'ls -la ./dist'
             //  sh 'sudo rm -r ./data'
@@ -50,13 +27,28 @@ pipeline {
                 sh 'docker images --filter reference=sortlogback'
             }
         }
-        // stage('Run Docker Container') 
-        // {
-        //     environment{MONGO_URL=credentials('MONGO_URL')}
+
+        // stage('TF Launch Instances'){
+        //     // Terraform must be installed
+        //     // ssh key pairs must be configured:
+        //     // sudo -i
+        //     // su jenkins
+        //     // ssh-keygen (press ENTER for passphrase)
+        //     //传进去三个变量，这三个变量需要需要在terraform 中定义，所以有一个variable。tf 文件，只需要有一个描述
         //     steps {
-        //         sh 'docker-compose up '
+        //         withAWS(credentials: AWS_CRED, region: AWS_REGION) {
+                   
+                    
+        //                 sh '''
+        //                     terraform init
+        //                     terraform destroy \
+        //                        -var="app_env=${APP_ENV}"\
+        //                        --auto-approve
+        //                 '''
+                    
+        //         }
         //     }
-        //   }
+        // }
 
 
         stage('upload backend to  ECR bucket') {
@@ -66,15 +58,14 @@ pipeline {
                 {
                     echo "deploy to ECR "
                     sh '''
-                    docker tag sortlogback 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/sortlog-repository
-                    docker login -u AWS -p $(aws ecr get-login-password --region ap-southeast-2) 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/sortlog-repository
-                    docker push 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/sortlog-repository
-                    '''}
-             
+                    aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com
+                    docker tag sortlogback 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/worked-sortlog:latest
+                    docker push 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/worked-sortlog:latest
+                    '''
+                    }
             }
          
          }
 
     }
 }
->>>>>>> fe171b930329ba6cd46afbbb46f9e811f373eda3
