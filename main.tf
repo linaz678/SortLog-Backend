@@ -237,10 +237,9 @@ resource "aws_ecs_task_definition" "main" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
     name        = "${var.stack}-sortlogcontainer-${var.app_env}"
-    image       = "${aws_ecr_repository.sortlog.repository_url}:latest"//"${var.container_image}:latest" //
+    image       = "${aws_ecr_repository.sortlog.repository_url}:latest" //"${var.container_image}:latest"//// //
     essential   = true
     environment= [
-      
       {"name": "auth_encryption_salt", "value": "some-salt"},
       {"name": "PORT", "value"= "3000"}
     ]
@@ -257,7 +256,7 @@ resource "aws_ecs_task_definition" "main" {
         awslogs-region        = "ap-southeast-2"// change to your 
       }
     }
-#     secrets = var.container_secrets
+    secrets : [{"name": "MONGO_URL", "valueFrom": "arn:aws:ssm:ap-southeast-2:003374733998:parameter/MONGO_URL"}]
   }])
 
 #   tags = {
@@ -330,9 +329,36 @@ resource "aws_iam_role" "ecs_task_role" {
 }
 EOF
 }
+resource "aws_iam_policy" "policy" {
+  name        = "${var.stack}-ssmpolicy-${var.app_env}"
+  description = "ssm secret system manager policy"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameters",
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": [
+        "arn:aws:ssm:ap-southeast-2:003374733998:parameter/MONGO_URL",
+        "arn:aws:secretsmanager:ap-southeast-2:003374733998:secret:MONGO_URL*"
+      ]
+    }
+  ]
+}
+EOF
+}
 resource "aws_iam_role_policy_attachment" "ecs-task-execution-role-policy-attachment" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+resource "aws_iam_role_policy_attachment" "ssm-attach" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.policy.arn
 }
 
 #IAM role for autoscaling 
@@ -465,10 +491,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 #   log_group_name = aws_cloudwatch_log_group.log_group.name
 # }
 
-# ############set up ECR #############
-# data "aws_ecr_repository" "sortlog" {
-#     name = "sortlog-ecs-terraform"
-# }
+
 #####Create ECR repo##########
 resource "aws_ecr_repository" "sortlog" {
   name                 = "sortlog"
@@ -499,4 +522,15 @@ resource "aws_ecr_lifecycle_policy" "main" {
    }]
   })
 }
+#####Create DNS record for alb ##########
+resource "aws_route53_record" "backend" {
+  zone_id = "Z06225263LROS058F7FRE"//aws_route53_zone.main.zone_id////change 
+  name    =  var.backendurl//CName of CDN,var.url aws_cloudfront_distribution.s3_distribution.aliases cannotwork
+  type    = "A"
 
+  alias {
+    name                   = aws_alb.main.dns_name//aws_cloudfront_distribution.s3_distribution.domain_name
+    zone_id                = aws_alb.main.zone_id//aws_cloudfront_distribution.s3_distribution.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
