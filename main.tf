@@ -494,10 +494,10 @@ resource "aws_cloudwatch_log_group" "log_group" {
 
 #####Create ECR repo##########
 resource "aws_ecr_repository" "sortlog" {
-  name                 = "sortlog"
+  name                 = "sortlog-${var.app_env}"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
-    scan_on_push = true
+    scan_on_push = false
   }
   tags = {
     Name = "${var.stack}-sortlog-${var.app_env}"
