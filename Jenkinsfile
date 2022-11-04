@@ -45,7 +45,11 @@ pipeline {
                                --auto-approve
                         '''
                          script {
-                                ECR_REPO_NAME = sh(returnStdout: true, script: "terraform output repository_url")}
+                                ECR_REPO_NAME = sh(returnStdout: true, script: "terraform output repository_url")
+                                ECS_C_NAME = sh(returnStdout: true, script: "terraform output ECS_Cluster_NAME")
+                                ECS_S_NAME = sh(returnStdout: true, script: "terraform output ECS_Service_NAME")
+                                }
+
                         sh "echo ${ECR_REPO_NAME}"
 
                     
@@ -59,10 +63,12 @@ pipeline {
                 {
                     echo "deploy to ECR "
                     sh "echo ${ECR_REPO_NAME}"
+                    sh "echo ${ECS_C_NAME}"
+                    sh "echo ${ECS_S_NAME}"
                     sh "docker tag sortlogback ${ECR_REPO_NAME}"
                     sh"aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin ${ECR_REPO_NAME}"
                     sh "docker push ${ECR_REPO_NAME}"
-                    sh "aws ecs update-service --cluster cluster_name --service service_name --force-new-deployment"
+                    sh "aws ecs update-service --cluster ${ECS_C_NAME} --service ${ECS_S_NAME} --force-new-deployment"
                 }
             }
         }

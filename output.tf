@@ -7,3 +7,9 @@ output "alb_zoneid" {
 output "repository_url"{
   value = aws_ecr_repository.sortlog.repository_url
 }
+output "ECS_Cluster_NAME"{
+  value = aws_ecs_cluster.main.name
+}
+output "ECS_Service_NAME"{
+  value = aws_ecs_service.main.name
+}
