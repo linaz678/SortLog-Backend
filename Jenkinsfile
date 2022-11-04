@@ -66,8 +66,8 @@ pipeline {
                     sh "docker push ${ECR_REPO_NAME}"
                     sh (script:"""
                     aws ecs update-service \
-                    --cluster $AWS_ECS_CLUSTER \
-                    --service $AWS_ECS_SERVICEe \
+                    --cluster ${AWS_ECS_CLUSTER} \
+                    --service ${AWS_ECS_SERVICE} \
                     --force-new-deployment \
                     """)
                 }
