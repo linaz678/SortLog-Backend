@@ -522,7 +522,7 @@ resource "aws_ecr_lifecycle_policy" "main" {
    }]
   })
 }
-#####Create DNS record for alb ##########
+#####Create DNS record for alb ###########test
 resource "aws_route53_record" "backend" {
   zone_id = "Z06225263LROS058F7FRE"//aws_route53_zone.main.zone_id////change 
   name    =  var.backendurl//CName of CDN,var.url aws_cloudfront_distribution.s3_distribution.aliases cannotwork
