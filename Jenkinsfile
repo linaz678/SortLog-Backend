@@ -64,10 +64,11 @@ pipeline {
                     sh "docker tag sortlogback ${ECR_REPO_NAME}"
                     sh"aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin ${ECR_REPO_NAME}"
                     sh "docker push ${ECR_REPO_NAME}"
-                    sh """aws ecs update-service \
+                    sh (script:"""aws ecs update-service \
+                    --service ${AWS_ECS_SERVICE}\
                     --cluster ${AWS_ECS_CLUSTER}\
-                    --service ${AWS_ECS_SERVICE} \
-                    --force-new-deployment"""
+                    --force-new-deployment\
+                    """)
                 }
             }
         }
