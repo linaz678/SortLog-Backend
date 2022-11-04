@@ -46,9 +46,8 @@ pipeline {
                         '''
                          script {
                                 ECR_REPO_NAME = sh(returnStdout: true, script: "terraform output repository_url").trim()
-                                AWS_ECS_CLUSTER = sh(returnStdout: true, script: "terraform output ECS_Cluster_NAME").trim()
-                                AWS_ECS_SERVICE = sh(returnStdout: true, script: "terraform output ECS_Service_NAME").trim()
-                                }                 
+                                AWS_ECS_CLUSTER = sh(returnStdout: true, script: "terraform output ECS_Cluster_NAME")
+                                AWS_ECS_SERVICE = sh(returnStdout: true, script: "terraform output ECS_Service_NAME")
                 }
             }
         }
