@@ -70,7 +70,7 @@ pipeline {
                     // --service ${AWS_ECS_SERVICE} \
                     // --force-new-deployment \
                     // """)
-                    sh "aws ecs update-service --cluster "sortlogfinal-sortlogcluster-UAT" --services "sortlogfinal-sortlogcluster-UAT" --force-new-deployment"
+                    sh "aws ecs update-service --cluster "sortlogfinal-sortlogcluster-UAT"  --service "sortlogfinal-sortlogservice-UAT" --force-new-deployment"
                 }
             }
         }
