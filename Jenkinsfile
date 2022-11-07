@@ -47,37 +47,39 @@ pipeline {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION){
 
                     script {
-                        env.IMAGE_Name = ""
+                        env.IMAGE_Name = "___"
 
                         if(currentBuild.result != null && currentBuild.result != 'SUCCESS'){
                             return false
                         }
 
                         if (env.BRANCH_NAME == 'dev' ){
-                            withEnv(["IMAGE_NAME=$IMAGE_DEV"]){
-                                echo "IMAGE_Name = ${env.IMAGE_NAME}"
-                            }
+                            echo "Building and Uploading Dev Docker Image to ECR"
+                            sh '''
+                                docker build -t $IMAGE_DEV .
+                                docker images --filter reference=$IMAGE_DEV
+                                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
+                                docker tag $IMAGE_DEV:$IMAGE_TAG $ECR_URL/$IMAGE_Name:$IMAGE_TAG
+                                docker push $ECR_URL/$IMAGE_DEV:$IMAGE_TAG
+                            '''
                         }
+                        
 
                         if (env.BRANCH_NAME == 'main'){
-                            withEnv(["IMAGE_NAME=$IMAGE_PROD"]){
-                
-                                echo "IMAGE_Name = ${env.IMAGE_NAME}"
-                            }
+                            echo "Building and Uploading Prod Docker Image to ECR"
+                             sh '''
+                                docker build -t $IMAGE_NAME .
+                                docker images --filter reference=$IMAGE_PROD
+                                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
+                                docker tag $IMAGE_PROD:$IMAGE_TAG $ECR_URL/$IMAGE_PROD:$IMAGE_TAG
+                                docker push $ECR_URL/$IMAGE_PROD:$IMAGE_TAG
+                            '''
                         }
 
-                        echo "Building and Uploading Docker Image to ECR"
-                        script {
-                        sh '''
-                            docker build -t $IMAGE_NAME .
-                            docker images --filter reference=${env.IMAGE_NAME}
-                            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
-                            docker tag ${env.IMAGE_NAME}:$IMAGE_TAG $ECR_URL/$IMAGE_Name:$IMAGE_TAG
-                            docker push $ECR_URL/$IMAGE_Name:$IMAGE_TAG
-                        '''
+                    
                         
-                        }                    
-                    }
+                    }                    
+                    
                 }
             }
         } 
