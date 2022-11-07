@@ -81,7 +81,7 @@ pipeline {
                     // docker images -qa | xargs docker rmi -f
                     sh'''
                         docker rmi -f $(docker images -q)
-                        docker system prune
+                        docker system prune -f
                         cleanWs()
                     '''
                 } catch (Exception e) {
