@@ -26,18 +26,15 @@ pipeline {
              }     
         }
 
-        stage('yarn build') 
-        {
-            steps{
-             sh "yarn build "
-             sh 'ls -la ./dist'
-            //  sh 'sudo rm -r ./data'
-             }
-        } 
-
         stage ('Test') {
             steps {
                 echo "Testing...."
+                sh '''
+                    yarn pre-commit
+                    yarn coverage
+                    yarn test:watch
+                    yarn test
+                '''
             }
         }
 
@@ -91,7 +88,7 @@ pipeline {
                 try{
                     // docker images -qa | xargs docker rmi -f
                     sh'''
-                        docker rmi $(docker images -q)
+                        docker rmi -f $(docker images -q)
                         docker system prune
                         cleanWs()
                     '''
