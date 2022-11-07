@@ -61,6 +61,7 @@ pipeline {
 
                         if (env.BRANCH_NAME == 'main'){
                             withEnv(["IMAGE_NAME=$IMAGE_PROD"]){
+                                echo "666"
                                 echo "IMAGE_Name = ${env.IMAGE_NAME}"
                             }
                         }
