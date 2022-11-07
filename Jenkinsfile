@@ -47,7 +47,6 @@ pipeline {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION){
 
                     script {
-                        env.IMAGE_Name = "___"
 
                         if(currentBuild.result != null && currentBuild.result != 'SUCCESS'){
                             return false
@@ -59,7 +58,7 @@ pipeline {
                                 docker build -t $IMAGE_DEV .
                                 docker images --filter reference=$IMAGE_DEV
                                 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
-                                docker tag $IMAGE_DEV:$IMAGE_TAG $ECR_URL/$IMAGE_Name:$IMAGE_TAG
+                                docker tag $IMAGE_DEV:$IMAGE_TAG $ECR_URL/$IMAGE_DEV:$IMAGE_TAG
                                 docker push $ECR_URL/$IMAGE_DEV:$IMAGE_TAG
                             '''
                         }
@@ -68,7 +67,7 @@ pipeline {
                         if (env.BRANCH_NAME == 'main'){
                             echo "Building and Uploading Prod Docker Image to ECR"
                              sh '''
-                                docker build -t $IMAGE_NAME .
+                                docker build -t $IMAGE_PROD .
                                 docker images --filter reference=$IMAGE_PROD
                                 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
                                 docker tag $IMAGE_PROD:$IMAGE_TAG $ECR_URL/$IMAGE_PROD:$IMAGE_TAG
