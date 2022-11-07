@@ -66,9 +66,6 @@ pipeline {
                                 docker push $ECR_URL/$IMAGE_PROD:$IMAGE_TAG
                             '''
                         }
-
-                    
-                        
                     }                    
                     
                 }
@@ -83,7 +80,7 @@ pipeline {
                 try{
                     // docker images -qa | xargs docker rmi -f
                     sh'''
-                        docker rmi -f $(docker images -q) -y
+                        docker rmi -f $(docker images -q)
                         docker system prune
                         cleanWs()
                     '''
