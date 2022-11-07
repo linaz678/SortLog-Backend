@@ -67,11 +67,11 @@ pipeline {
                         echo "Building and Uploading Docker Image to ECR"
                         script {
                         sh '''
-                            docker build -t ${env.IMAGE_NAME} .
+                            docker build -t $IMAGE_NAME .
                             docker images --filter reference=${env.IMAGE_NAME}
                             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
-                            docker tag ${env.IMAGE_NAME}:$IMAGE_TAG $ECR_URL/${env.IMAGE_NAME}:$IMAGE_TAG
-                            docker push $ECR_URL/${env.IMAGE_NAME}:$IMAGE_TAG
+                            docker tag ${env.IMAGE_NAME}:$IMAGE_TAG $ECR_URL/$IMAGE_Name:$IMAGE_TAG
+                            docker push $ECR_URL/$IMAGE_Name:$IMAGE_TAG
                         '''
                         
                         }                    
