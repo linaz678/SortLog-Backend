@@ -29,12 +29,7 @@ pipeline {
         stage ('Test') {
             steps {
                 echo "Testing...."
-                sh '''
-                    yarn pre-commit
-                    yarn coverage
-                    yarn test:watch
-                    yarn test
-                '''
+                sh 'yarn pre-commit'
             }
         }
 
@@ -88,7 +83,7 @@ pipeline {
                 try{
                     // docker images -qa | xargs docker rmi -f
                     sh'''
-                        docker rmi -f $(docker images -q)
+                        docker rmi -f $(docker images -q) -y
                         docker system prune
                         cleanWs()
                     '''
