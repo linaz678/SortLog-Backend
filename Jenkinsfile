@@ -1,16 +1,31 @@
 pipeline {
-     agent any
-     
+    agent any
+    
+    environment {
+        AWS_CRED = "AWS_sortlog"
+        AWS_REGION = "ap-southeast-2"
+
+        SORTLOG_DEV_REPO = "sortlog-dev"
+        SORTLOG_PROD_REPO = "sortlog-prod"
+
+        IMAGE_DEV = "$SORTLOG_DEV_REPO"
+        IMAGE_PROD = "$SORTLOG_PROD_REPO"
+
+        IMAGE_NAME = ""
+        
+        IMAGE_TAG = "${env.BUILD_TAG}"
+        ECR_URL = "003374733998.dkr.ecr.ap-southeast-2.amazonaws.com"
+    } 
+
+
         //Install denpendencies 
     stages{
         stage('Install dependency')
         {
             steps{
              echo "Installing packages"
-             sh 'yarn install'
-             
-             }
-             
+             sh 'yarn install' 
+             }     
         }
 
         stage('yarn build') 
@@ -21,51 +36,85 @@ pipeline {
             //  sh 'sudo rm -r ./data'
              }
         } 
-         stage('Build Docker image') {
+
+        stage ('Test') {
             steps {
-                sh 'docker build -t sortlogback .'
-                sh 'docker images --filter reference=sortlogback'
+                echo "Testing...."
             }
         }
 
-        // stage('TF Launch Instances'){
-        //     // Terraform must be installed
-        //     // ssh key pairs must be configured:
-        //     // sudo -i
-        //     // su jenkins
-        //     // ssh-keygen (press ENTER for passphrase)
-        //     //传进去三个变量，这三个变量需要需要在terraform 中定义，所以有一个variable。tf 文件，只需要有一个描述
-        //     steps {
-        //         withAWS(credentials: AWS_CRED, region: AWS_REGION) {
-                   
-                    
-        //                 sh '''
-        //                     terraform init
-        //                     terraform destroy \
-        //                        -var="app_env=${APP_ENV}"\
-        //                        --auto-approve
-        //                 '''
-                    
-        //         }
-        //     }
-        // }
-
-
-        stage('upload backend to  ECR bucket') {
+         stage('Build Docker image') {
             steps {
-                withAWS(credentials: AWS_CRED, region: AWS_REGION)        
-               
-                {
-                    echo "deploy to ECR "
-                    sh '''
-                    aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com
-                    docker tag sortlogback 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/worked-sortlog:latest
-                    docker push 003374733998.dkr.ecr.ap-southeast-2.amazonaws.com/worked-sortlog:latest
-                    '''
-                    }
+                sh "docker build -t $IMAGE_DEV ."
+                // sh 'docker images --filter reference=sortlogback'
             }
-         
-         }
+        }
 
+         stage('Build Docker Image and Image Updating to ECR'){
+
+            steps {
+                withAWS(credentials: AWS_CRED, region: AWS_REGION){
+
+                    script {
+                        if(currentBuild.result != null && currentBuild.result != 'SUCCESS'){
+                            return false
+                        }
+
+                        if （env.BRANCH_NAME == 'dev' ）{
+                            withEnv(["IMAGE_NAME=$IMAGE_DEV"]){
+                                echo "IMAGE_Name = ${env.IMAGE_NAME}"
+                            }
+                        }
+
+                        if （env.BRANCH_NAME == 'main'）{
+                            withEnv(["IMAGE_NAME=$IMAGE_PROD"]){
+                                echo "IMAGE_Name = ${env.IMAGE_NAME}"
+                            }
+                        }
+
+                        echo "Building and Uploading Docker Image to ECR"
+                        script {
+                        sh '''
+                            docker build -t $IMAGE_Name ."
+                            docker images --filter reference=$IMAGE_Name
+                            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
+                            docker tag $IMAGE_Name:$IMAGE_TAG $ECR_URL/$IMAGE_Name:$IMAGE_TAG
+                            docker push $ECR_URL/$IMAGE_Name:$IMAGE_TAG
+                        '''
+                        
+                        }                    
+                    }
+                }
+            }
+        } 
+
+    }
+    
+    post {
+        always {
+            script {
+                try{
+                    // docker images -qa | xargs docker rmi -f
+                    sh'''
+                        docker rmi $(docker images -q)
+                        docker system prune
+                        cleanWs()
+                    '''
+                } catch (Exception e) {
+                    echo "docker clean failed"
+                }
+            }
+        
+        }
+
+        failure {
+            // send message it was failsure
+            echo "uhm... 我觉得不太行！"
+        }
+
+        success {
+            // send message it was success
+            echo "老铁！恭喜你，成功了呀!"
+        }
     }
 }
