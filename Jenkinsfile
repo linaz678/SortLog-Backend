@@ -60,13 +60,13 @@ pipeline {
                             return false
                         }
 
-                        if （env.BRANCH_NAME == 'dev' ）{
+                        if (env.BRANCH_NAME == 'dev' ){
                             withEnv(["IMAGE_NAME=$IMAGE_DEV"]){
                                 echo "IMAGE_Name = ${env.IMAGE_NAME}"
                             }
                         }
 
-                        if （env.BRANCH_NAME == 'main'）{
+                        if (env.BRANCH_NAME == 'main'){
                             withEnv(["IMAGE_NAME=$IMAGE_PROD"]){
                                 echo "IMAGE_Name = ${env.IMAGE_NAME}"
                             }
