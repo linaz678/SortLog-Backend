@@ -61,7 +61,7 @@ pipeline {
 
                         if (env.BRANCH_NAME == 'main'){
                             withEnv(["IMAGE_NAME=$IMAGE_PROD"]){
-                                echo "666"
+                
                                 echo "IMAGE_Name = ${env.IMAGE_NAME}"
                             }
                         }
@@ -69,7 +69,7 @@ pipeline {
                         echo "Building and Uploading Docker Image to ECR"
                         script {
                         sh '''
-                            docker build -t $IMAGE_Name ."
+                            docker build -t $IMAGE_Name .
                             docker images --filter reference=$IMAGE_Name
                             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
                             docker tag $IMAGE_Name:$IMAGE_TAG $ECR_URL/$IMAGE_Name:$IMAGE_TAG
