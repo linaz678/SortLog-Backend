@@ -43,13 +43,6 @@ pipeline {
             }
         }
 
-         stage('Build Docker image') {
-            steps {
-                sh "docker build -t $IMAGE_DEV ."
-                // sh 'docker images --filter reference=sortlogback'
-            }
-        }
-
          stage('Build Docker Image and Image Updating to ECR'){
 
             steps {
