@@ -11,6 +11,8 @@ pipeline {
         IMAGE_DEV = "$SORTLOG_DEV_REPO"
         IMAGE_PROD = "$SORTLOG_PROD_REPO"
 
+        IMAGE_Name = "_"
+
         IMAGE_TAG = "${env.BUILD_TAG}"
         ECR_URL = "003374733998.dkr.ecr.ap-southeast-2.amazonaws.com"
     } 
@@ -67,7 +69,7 @@ pipeline {
                         echo "Building and Uploading Docker Image to ECR"
                         script {
                         sh '''
-                            docker build -t ${IMAGE_NAME} .
+                            docker build -t env.IMAGE_NAME .
                             docker images --filter reference=${env.IMAGE_NAME}
                             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
                             docker tag ${env.IMAGE_NAME}:$IMAGE_TAG $ECR_URL/$IMAGE_Name:$IMAGE_TAG
