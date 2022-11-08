@@ -6,8 +6,8 @@ WORKDIR /app
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 
 
-RUN yarn install
-#To bundle your app's source code inside the Docker image, use the COPY instruction:
+# RUN yarn install
+# #To bundle your app's source code inside the Docker image, use the COPY instruction:
 COPY . .
 # should I have yarn build at this stagge ?
 
