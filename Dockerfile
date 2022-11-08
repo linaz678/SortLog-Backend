@@ -1,31 +1,24 @@
-FROM node:16-alpine 
-WORKDIR /app
-COPY . .
-CMD ["yarn", "start"]
-
-
-
 # Install dependencies only when needed
-# FROM node:16-alpine 
+FROM node:16-alpine 
 
-# # ENV NODE_ENV=production
-# ENV CI=true
-# #Next we create a directory to hold the application code inside the image
-# WORKDIR /app
-# # Install dependencies based on the preferred package manager
-# COPY ["package.json", "yarn.lock*", "pnpm-lock.yaml*", "./"]
+# ENV NODE_ENV=production
+ENV CI=true
+#Next we create a directory to hold the application code inside the image
+WORKDIR /app
+# Install dependencies based on the preferred package manager
+COPY ["package.json", "yarn.lock*", "pnpm-lock.yaml*", "./"]
 
-# # RUN yarn install --production=true
-# RUN yarn install
-# #To bundle your app's source code inside the Docker image, use the COPY instruction:
-# # COPY . .
-
-# FROM node:16-alpine 
-# WORKDIR /app
-# COPY --from=0 /app .
+# RUN yarn install --production=true
+RUN yarn install
+#To bundle your app's source code inside the Docker image, use the COPY instruction:
 # COPY . .
 
-# CMD ["yarn", "start"]
+FROM node:16-alpine 
+WORKDIR /app
+COPY --from=0 /app .
+COPY . .
+
+CMD ["yarn", "start"]
 
 
 
