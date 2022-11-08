@@ -18,22 +18,31 @@ pipeline {
 
         //Install denpendencies 
     stages{
-        stage('Install dependency')
-        {
+        stage('Install dependency'){
+            when { anyOf { branch 'main'; branch 'dev' } }
+            agent {
+                docker {
+                    image 'node:16-alpine'
+                }
+            }
             steps{
-             echo "Installing packages"
-             sh 'yarn install' 
+             echo "building packages..."
+             sh '''
+                yarn install
+                docker build -t $IMAGE_DEV:$IMAGE_TAG .
+             '''
              }     
         }
 
-        stage ('Test') {
-            steps {
-                echo "Testing...."
-                sh 'yarn pre-commit'
-            }
-        }
+        // stage ('Test') {
+        //     steps {
+        //         echo "Testing...."
+        //         sh 'yarn pre-commit'
+        //     }
+        // }
 
          stage('Build Docker Image and Image Updating to ECR'){
+            when { anyOf { branch 'main'; branch 'dev' } }
 
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION){
@@ -47,7 +56,7 @@ pipeline {
                         if (env.BRANCH_NAME == 'dev' ){
                             echo "Building and Uploading Dev Docker Image to ECR"
                             sh '''
-                                docker build -t $IMAGE_DEV:$IMAGE_TAG .
+                                
                                 docker images --filter reference=$IMAGE_DEV
                                 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
                                 docker tag $IMAGE_DEV:$IMAGE_TAG $ECR_URL/$IMAGE_DEV:$IMAGE_TAG
