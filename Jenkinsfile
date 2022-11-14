@@ -40,8 +40,8 @@ pipeline {
                 stage ('Docker Build'){
                     agent {
                         docker {
-                            image 'docker:stable-dind'
-                            args '--privileged'
+                            image 'docker'
+                            args '-v /var/run/docker.sock:/var/run/docker.sock'
                         }
                     }
 
