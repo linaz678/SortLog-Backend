@@ -40,8 +40,7 @@ pipeline {
                 stage ('Docker Build'){
                     agent {
                         docker {
-                            image 'docker'
-                            args '-v /var/run/docker.sock:/var/run/docker.sock'
+                            dockerfile true
                         }
                     }
 
@@ -69,7 +68,7 @@ pipeline {
                         if (env.BRANCH_NAME == 'main'){
                             echo "Building and Uploading Prod Docker Image to ECR"
                              sh '''
-                                docker build -t $IMAGE_PROD:$IMAGE_TAG .
+                                docker build -f Dockerfile-Back -t $IMAGE_PROD:$IMAGE_TAG .
                                 docker images --filter reference=$IMAGE_PROD
                                 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
                                 docker tag $IMAGE_PROD:$IMAGE_TAG $ECR_URL/$IMAGE_PROD:$IMAGE_TAG
