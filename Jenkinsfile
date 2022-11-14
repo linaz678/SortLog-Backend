@@ -36,8 +36,16 @@ pipeline {
 
          stage('Build Docker Image and Image Updating to ECR'){
             when { anyOf { branch 'main'; branch 'dev' } }
+            stages {
+                stage ('Docker Build'){
+                    agent {
+                        docker {
+                            image 'docker:stable-dind'
+                            args '--privileged'
+                        }
+                    }
 
-            steps {
+                    steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION){
 
                     script {
@@ -72,6 +80,11 @@ pipeline {
                     
                 }
             }
+
+
+                }
+            }
+            
         } 
 
     }
