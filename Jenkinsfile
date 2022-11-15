@@ -32,10 +32,11 @@ pipeline {
         }
         stage('uat'){
             when{branch'uat'}
-        stage('TF Launch Instances'){
+            stages{
+            stage('TF Launch Instances'){
             
-            steps {
-                withAWS(credentials: AWS_CRED, region: AWS_REGION) {
+                steps {
+                    withAWS(credentials: AWS_CRED, region: AWS_REGION) {
                    
                     
                         sh '''
@@ -51,9 +52,9 @@ pipeline {
                                 AWS_ECS_CLUSTER = sh(returnStdout: true, script: "terraform output ECS_Cluster_NAME").trim()
                                 AWS_ECS_SERVICE = sh(returnStdout: true, script: "terraform output ECS_Service_NAME").trim()
                                 }                 
+                    }
                 }
             }
-        }
         stage('Deliver for UAT') {
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION)   
@@ -70,12 +71,13 @@ pipeline {
                     
                 }
             }
-        }
+        }}
         }
 
 
         stage('production'){
             when{branch'main'}
+            stages{
         stage('TF Launch Instances'){
             
             steps {
@@ -114,7 +116,7 @@ pipeline {
                     
                 }
             }
-        }
+        }}
         }
 
         
