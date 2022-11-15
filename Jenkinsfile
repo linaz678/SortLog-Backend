@@ -78,7 +78,7 @@ pipeline {
         stage('production'){
             when{branch'main'}
             stages{
-        stage('TF Launch Instances'){
+        stage('production-TF Launch Instances'){
             
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION) {
@@ -88,7 +88,7 @@ pipeline {
                             export APP_ENV="production"
                             terraform init -input=false
                             terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
-                            terraform destroy \
+                            terraform apply \
                                -var="app_env=${APP_ENV}"\
                                --auto-approve
                         '''
@@ -100,7 +100,7 @@ pipeline {
                 }
             }
         }
-        stage('Deliver for UAT') {
+        stage('Deliver for production') {
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION)   
                
