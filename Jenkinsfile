@@ -30,6 +30,8 @@ pipeline {
                 sh 'docker images --filter reference=sortlogback'
             }
         }
+        stage('uat'){
+            when{branch'uat'}
         stage('TF Launch Instances'){
             
             steps {
@@ -38,6 +40,50 @@ pipeline {
                     
                         sh '''
                             export APP_ENV="UAT"
+                            terraform init -input=false
+                            terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
+                            terraform apply \
+                               -var="app_env=${APP_ENV}"\
+                               --auto-approve
+                        '''
+                         script {
+                                ECR_REPO_NAME = sh(returnStdout: true, script: "terraform output repository_url").trim()
+                                AWS_ECS_CLUSTER = sh(returnStdout: true, script: "terraform output ECS_Cluster_NAME").trim()
+                                AWS_ECS_SERVICE = sh(returnStdout: true, script: "terraform output ECS_Service_NAME").trim()
+                                }                 
+                }
+            }
+        }
+        stage('Deliver for UAT') {
+            steps {
+                withAWS(credentials: AWS_CRED, region: AWS_REGION)   
+               
+                {
+                    echo "deploy to ECR "
+                    sh "echo ${ECR_REPO_NAME}"
+                    sh "echo ${AWS_ECS_CLUSTER}"
+                    sh "echo ${AWS_ECS_SERVICE}"
+                    sh "docker tag sortlogback ${ECR_REPO_NAME}"
+                    sh"aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin ${ECR_REPO_NAME}"
+                    sh "docker push ${ECR_REPO_NAME}"
+                    sh "aws ecs update-service --cluster ${AWS_ECS_CLUSTER} --service ${AWS_ECS_SERVICE} --force-new-deployment"
+                    
+                }
+            }
+        }
+        }
+
+
+        stage('production'){
+            when{branch'main'}
+        stage('TF Launch Instances'){
+            
+            steps {
+                withAWS(credentials: AWS_CRED, region: AWS_REGION) {
+                   
+                    
+                        sh '''
+                            export APP_ENV="production"
                             terraform init -input=false
                             terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
                             terraform destroy \
@@ -69,6 +115,9 @@ pipeline {
                 }
             }
         }
+        }
+
+        
 
     }
 }
