@@ -1,7 +1,7 @@
 variable "app_env" {}
 variable "stack" {
   description = "name of the ECS task "
-  default     = "sortlogfinal"
+  default     = "sortlog"
 }
 variable "environment" {
   description = "name of the ECS task "
