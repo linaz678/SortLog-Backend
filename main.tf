@@ -99,7 +99,7 @@ resource "aws_route_table_association" "private" {
 #Set up security group 
 #ALB Security Group: Edit to restrict access to the application
 resource "aws_security_group" "lb" {
-  name        = "load-balancer-security-group"
+  name        = "${var.stack}-sglb-${var.app_env}"
   description = "controls access to the ALB"
   vpc_id      = aws_vpc.main.id
 
@@ -131,7 +131,7 @@ resource "aws_security_group" "lb" {
 }
 #Traffic to the ECS cluster should only come from the ALB
 resource "aws_security_group" "ecs_tasks" {
-  name   = "securitygroup_p20221024"
+  name   = "${var.stack}-sgecs_task-${var.app_env}"
   vpc_id = aws_vpc.main.id
  
   ingress {
@@ -155,7 +155,7 @@ resource "aws_security_group" "ecs_tasks" {
 
 ################Create a load balancer #################
 resource "aws_alb" "main" {
-  name            = "load-balancer-demo"
+  name            = "${var.stack}-alb-${var.app_env}"
   subnets         = aws_subnet.public.*.id
   security_groups = [aws_security_group.lb.id]
   load_balancer_type = "application"
@@ -166,7 +166,7 @@ resource "aws_alb" "main" {
 }
 
 resource "aws_alb_target_group" "app" {
-  name        = "target-group-demo"
+  name        = "${var.stack}-albtg-${var.app_env}"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
@@ -494,7 +494,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 
 #####Create ECR repo##########
 resource "aws_ecr_repository" "sortlog" {
-  name                 = "sortlog"
+  name                 = "sortlog-${var.app_env}"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = false
@@ -525,7 +525,7 @@ resource "aws_ecr_lifecycle_policy" "main" {
 #####Create DNS record for alb ###########test
 resource "aws_route53_record" "backend" {
   zone_id = "Z06225263LROS058F7FRE"//aws_route53_zone.main.zone_id////change 
-  name    =  var.backendurl//CName of CDN,var.url aws_cloudfront_distribution.s3_distribution.aliases cannotwork
+  name    =  "${var.app_env}.sortlog.net"//var.backendurl//CName of CDN,var.url aws_cloudfront_distribution.s3_distribution.aliases cannotwork
   type    = "A"
 
   alias {
