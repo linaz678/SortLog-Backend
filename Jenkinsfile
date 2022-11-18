@@ -32,7 +32,7 @@ pipeline {
         }
         stage('uat'){
             when {
-                branch 'main'
+                branch 'uat'
             }
 
             stages{
@@ -46,7 +46,7 @@ pipeline {
                             export APP_ENV="uat"
                             terraform init -input=false
                             terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
-                            terraform apply \
+                            terraform destroy \
                                -var="app_env=${APP_ENV}"\
                                --auto-approve
                         '''
@@ -79,7 +79,9 @@ pipeline {
 
 
         stage('production'){
-            when{branch'main'}
+            when {
+                branch 'main'
+            }
             stages{
         stage('production-TF Launch Instances'){
             
