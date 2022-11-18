@@ -30,11 +30,11 @@ pipeline {
                 sh 'docker images --filter reference=sortlogback'
             }
         }
-        stage('uat'){
-            when{branch'uat'}
-            stages{
-            stage('TF Launch Instances'){
-            
+       
+      
+           
+        stage('TF Launch Instances'){
+        when{branch'uat'} 
                 steps {
                     withAWS(credentials: AWS_CRED, region: AWS_REGION) {
                    
@@ -56,6 +56,7 @@ pipeline {
                 }
             }
         stage('Deliver for UAT') {
+            when{branch'uat'} 
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION)   
                
@@ -71,8 +72,8 @@ pipeline {
                     
                 }
             }
-        }}
         }
+        
 
 
       
