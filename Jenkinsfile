@@ -77,12 +77,11 @@ pipeline {
         }}
         }
 
-
-        stage('production'){
-            when {
+        stages{
+        when {
                 branch 'main'
-            }
-            stages{
+            }  
+        {
         stage('production-TF Launch Instances'){
             
             steps {
