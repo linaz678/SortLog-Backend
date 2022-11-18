@@ -31,7 +31,10 @@ pipeline {
             }
         }
         stage('uat'){
-            when{branch'uat'}
+            when {
+                branch 'main'
+            }
+
             stages{
             stage('TF Launch Instances'){
             
