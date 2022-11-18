@@ -77,14 +77,8 @@ pipeline {
         }}
         }
 
-
-        stage('production'){
-            when {
-                branch 'main'
-            }
-            stages{
-        stage('production-TF Launch Instances'){
-            
+        stage('production-TF Launch Instances') {
+            when {branch 'main'}
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION) {
                    
@@ -106,6 +100,7 @@ pipeline {
             }
         }
         stage('Deliver for production') {
+            when {branch 'main'}
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION)   
                
@@ -121,8 +116,8 @@ pipeline {
                     
                 }
             }
-        }}
         }
+        
 
         
 
