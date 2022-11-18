@@ -81,7 +81,6 @@ pipeline {
         when {
                 branch 'main'
             }  
-        {
         stage('production-TF Launch Instances'){
             
             steps {
@@ -120,8 +119,9 @@ pipeline {
                     
                 }
             }
-        }}
         }
+        }
+        
 
         
 
