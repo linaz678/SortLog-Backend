@@ -33,7 +33,7 @@ pipeline {
        
       
            
-        stage('TF Launch Instances'){
+        stage('TF Launch Instances for UAT'){
         when{branch'uat'} 
                 steps {
                     withAWS(credentials: AWS_CRED, region: AWS_REGION) {
@@ -78,7 +78,7 @@ pipeline {
 
       
            
-        stage ('TF Launch Instances for production') {
+        stage ('TF Launch Instances for PRODUCTION') {
         when{branch'main'}
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION) {
@@ -100,7 +100,7 @@ pipeline {
                 }
             }
         }
-        stage('Deliver for Production') {
+        stage('Deliver for PRODUCTION') {
         when{branch'main'} 
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION)   
