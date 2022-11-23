@@ -17,25 +17,22 @@ pipeline {
              
              }
         }
+        
         stage('yarn build') 
         {
             steps{
              sh "yarn build "    
              sh 'ls -la ./dist'
- 
-            //  sh 'sudo rm -r ./data'
              }
         } 
+
         stage('Build Docker image') {
             steps {
                 sh 'docker build -t sortlogback .'
                 sh 'docker images --filter reference=sortlogback'
             }
         }
-      
-
-
-          
+ 
         stage('TF Launch for UAT'){
         when {branch 'uat'}    
                 steps {
