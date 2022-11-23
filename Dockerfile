@@ -5,7 +5,8 @@ WORKDIR /app
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 
 
-# RUN yarn install
+RUN yarn install
+RUN sudo npm install typescript -g
 # #To bundle your app's source code inside the Docker image, use the COPY instruction:
 COPY . .
 # should I have yarn build at this stagge ?
