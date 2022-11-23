@@ -13,6 +13,7 @@ pipeline {
         {
             steps{
              echo "Installing packages"
+             sh 'npm install typescript -g'
              sh 'yarn install'
              
              }
@@ -20,8 +21,9 @@ pipeline {
         stage('yarn build') 
         {
             steps{
-             sh "yarn start "
+             sh "yarn build "    
              sh 'ls -la ./dist'
+             sh 'yarn start' 
             //  sh 'sudo rm -r ./data'
              }
         } 
