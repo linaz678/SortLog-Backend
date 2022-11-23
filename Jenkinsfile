@@ -17,7 +17,7 @@ pipeline {
              
              }
         }
-        
+
         stage('yarn build') 
         {
             steps{
@@ -115,9 +115,5 @@ pipeline {
                 }
             }
         }
-        
-
-        
-
     }
 }
