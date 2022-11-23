@@ -1,116 +1,125 @@
+
 pipeline {
-    agent any
-    
-    environment {
-        AWS_CRED = "AWS_sortlog"
-        AWS_REGION = "ap-southeast-2"
+     agent any
 
-        SORTLOG_DEV_REPO = "sortlog-dev"
-        SORTLOG_PROD_REPO = "sortlog-prod"
+    environment{
+        CI ='true'
+        AWS_CRED        = 'AWS_sortlog' //Change to yours
+        AWS_REGION      = 'ap-southeast-2'
+    }
 
-        IMAGE_DEV = "$SORTLOG_DEV_REPO"
-        IMAGE_PROD = "$SORTLOG_PROD_REPO"
-
-        IMAGE_TAG = "${env.BUILD_TAG}"
-        ECR_URL = "003374733998.dkr.ecr.ap-southeast-2.amazonaws.com"
-    } 
-
-
-        //Install denpendencies 
     stages{
         stage('Install dependency')
         {
-            
             steps{
              echo "Installing packages"
-             sh 'yarn install' 
-             }     
+             sh 'yarn install'
+             
+             }
         }
-
-        stage ('Test') {
-            steps {
-                echo "Testing...."
-                sh 'yarn pre-commit'
-            }
-        }
-
-         stage('Build Docker Image and Image Updating to ECR'){
-            when { anyOf { branch 'main'; branch 'dev' } }
-            stages {
-                stage ('Docker Build'){
-                    agent {
-                        docker {
-                            image 'tremendousure/sortlog'
-                        }
-                    }
-
-                    steps {
-                        withAWS(credentials: AWS_CRED, region: AWS_REGION){
-
-                            script {
-
-                                if(currentBuild.result != null && currentBuild.result != 'SUCCESS'){
-                                    return false
-                                }
-
-                                if (env.BRANCH_NAME == 'dev' ){
-                                    echo "Building and Uploading Dev Docker Image to ECR"
-                                    sh '''
-                                        docker build -t $IMAGE_DEV:$IMAGE_TAG .
-                                        docker images --filter reference=$IMAGE_DEV
-                                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
-                                        docker tag $IMAGE_DEV:$IMAGE_TAG $ECR_URL/$IMAGE_DEV:$IMAGE_TAG
-                                        docker push $ECR_URL/$IMAGE_DEV:$IMAGE_TAG
-                                    '''
-                                }
-                                
-
-                                if (env.BRANCH_NAME == 'main'){
-                                    echo "Building and Uploading Prod Docker Image to ECR"
-                                    sh '''
-                                        docker build -t $IMAGE_PROD:$IMAGE_TAG .
-                                        docker images --filter reference=$IMAGE_PROD
-                                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
-                                        docker tag $IMAGE_PROD:$IMAGE_TAG $ECR_URL/$IMAGE_PROD:$IMAGE_TAG
-                                        docker push $ECR_URL/$IMAGE_PROD:$IMAGE_TAG
-                                    '''
-                                }
-                            }                    
-                            
-                        }
-                    }
-                }
-            }
-            
+        stage('yarn build') 
+        {
+            steps{
+             sh "yarn build "
+             sh 'ls -la ./dist'
+            //  sh 'sudo rm -r ./data'
+             }
         } 
+        stage('Build Docker image') {
+            steps {
+                sh 'docker build -t sortlogback .'
+                sh 'docker images --filter reference=sortlogback'
+            }
+        }
+      
 
-    }
-    
-    post {
-        always {
-            script {
-                try{
-                    // docker images -qa | xargs docker rmi -f
-                    sh'''
-                        docker rmi -f $(docker images -q)
-                        docker system prune -f
-                        cleanWs()
-                    '''
-                } catch (Exception e) {
-                    echo "docker clean failed"
+
+          
+        stage('TF Launch for UAT'){
+        when {branch 'uat'}    
+                steps {
+                    withAWS(credentials: AWS_CRED, region: AWS_REGION) {
+                   
+                    
+                        sh '''
+                            export APP_ENV="uat"
+                            terraform init -input=false
+                            terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
+                            terraform apply \
+                               -var="app_env=${APP_ENV}"\
+                               --auto-approve
+                        '''
+                         script {
+                                ECR_REPO_NAME = sh(returnStdout: true, script: "terraform output repository_url").trim()
+                                AWS_ECS_CLUSTER = sh(returnStdout: true, script: "terraform output ECS_Cluster_NAME").trim()
+                                AWS_ECS_SERVICE = sh(returnStdout: true, script: "terraform output ECS_Service_NAME").trim()
+                                }                 
+                    }
+                }
+        }
+        stage('Deliver for UAT') {
+        when {branch 'uat'}
+            steps {
+                withAWS(credentials: AWS_CRED, region: AWS_REGION)   
+               
+                {
+                    echo "deploy to ECR "
+                    sh "echo ${ECR_REPO_NAME}"
+                    sh "echo ${AWS_ECS_CLUSTER}"
+                    sh "echo ${AWS_ECS_SERVICE}"
+                    sh "docker tag sortlogback ${ECR_REPO_NAME}"
+                    sh"aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin ${ECR_REPO_NAME}"
+                    sh "docker push ${ECR_REPO_NAME}"
+                    sh "aws ecs update-service --cluster ${AWS_ECS_CLUSTER} --service ${AWS_ECS_SERVICE} --force-new-deployment"
+                    
                 }
             }
+        }
         
-        }
 
-        failure {
-            // send message it was failsure
-            echo "uhm... 我觉得不太行！"
+        stage('TF Launch for PRODUCTION') {
+            when {branch 'main'}
+            steps {
+                withAWS(credentials: AWS_CRED, region: AWS_REGION) {
+                   
+                    
+                        sh '''
+                            export APP_ENV="production"
+                            terraform init -input=false
+                            terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
+                            terraform apply \
+                               -var="app_env=${APP_ENV}"\
+                               --auto-approve
+                        '''
+                         script {
+                                ECR_REPO_NAME = sh(returnStdout: true, script: "terraform output repository_url").trim()
+                                AWS_ECS_CLUSTER = sh(returnStdout: true, script: "terraform output ECS_Cluster_NAME").trim()
+                                AWS_ECS_SERVICE = sh(returnStdout: true, script: "terraform output ECS_Service_NAME").trim()
+                                }                 
+                }
+            }
         }
+        stage('Deliver for PRODUCTION') {
+            when {branch 'main'}
+            steps {
+                withAWS(credentials: AWS_CRED, region: AWS_REGION)   
+               
+                {
+                    echo "deploy to ECR "
+                    sh "echo ${ECR_REPO_NAME}"
+                    sh "echo ${AWS_ECS_CLUSTER}"
+                    sh "echo ${AWS_ECS_SERVICE}"
+                    sh "docker tag sortlogback ${ECR_REPO_NAME}"
+                    sh"aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin ${ECR_REPO_NAME}"
+                    sh "docker push ${ECR_REPO_NAME}"
+                    sh "aws ecs update-service --cluster ${AWS_ECS_CLUSTER} --service ${AWS_ECS_SERVICE} --force-new-deployment"
+                    
+                }
+            }
+        }
+        
 
-        success {
-            // send message it was success
-            echo "老铁！恭喜你，成功了呀!"
-        }
+        
+
     }
 }
