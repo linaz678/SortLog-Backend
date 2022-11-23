@@ -13,6 +13,7 @@ pipeline {
         {
             steps{
              echo "Installing packages"
+             sh 'sudo npm install typescript -g'
              sh 'yarn install'
              
              }
@@ -20,8 +21,9 @@ pipeline {
         stage('yarn build') 
         {
             steps{
-             sh "yarn build "
+             sh "yarn build "    
              sh 'ls -la ./dist'
+ 
             //  sh 'sudo rm -r ./data'
              }
         } 
@@ -45,7 +47,7 @@ pipeline {
                             export APP_ENV="uat"
                             terraform init -input=false
                             terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
-                            terraform apply \
+                            terraform destroy \
                                -var="app_env=${APP_ENV}"\
                                --auto-approve
                         '''
@@ -87,7 +89,7 @@ pipeline {
                             export APP_ENV="production"
                             terraform init -input=false
                             terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
-                            terraform apply \
+                            terraform destroy \
                                -var="app_env=${APP_ENV}"\
                                --auto-approve
                         '''
