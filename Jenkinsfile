@@ -20,7 +20,7 @@ pipeline {
         stage('yarn build') 
         {
             steps{
-             sh "yarn build "
+             sh "yarn start "
              sh 'ls -la ./dist'
             //  sh 'sudo rm -r ./data'
              }
