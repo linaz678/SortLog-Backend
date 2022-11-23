@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('express-async-errors');
 
 import express from 'express';
 import { createServer } from 'http';
@@ -14,6 +15,7 @@ import cors from 'cors';
 
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
+import errorMiddleware from './middleware/errorMiddleware'
 
 const app = express();
 const mHelper = new MongoHelper();
@@ -45,8 +47,11 @@ app.use('*', cors());
 app.use(compression());
 app.get('/', (req, res) => res.send('Hello SortLog!'));
 app.get('/health-check', (req, res) => res.status(200).send({ message: 'healthy' }));
+app.get('/', (req, res) => res.send('Hello SortLog!'));
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerJsDoc(swaggerOptions)));
 app.use('/api', Router);
+errorMiddleware(app);
+
 server.applyMiddleware({ app, path: '/graphql' });
 
 const httpServer = createServer(app);

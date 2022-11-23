@@ -1,4 +1,3 @@
-# Install dependencies only when needed
 FROM node:16-alpine 
 #Next we create a directory to hold the application code inside the image
 WORKDIR /app
@@ -6,7 +5,8 @@ WORKDIR /app
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 
 
-# RUN yarn install
+RUN yarn install
+RUN npm install typescript -g
 # #To bundle your app's source code inside the Docker image, use the COPY instruction:
 COPY . .
 # should I have yarn build at this stagge ?

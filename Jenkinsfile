@@ -12,6 +12,7 @@ pipeline {
         {
             steps{
              echo "Installing packages"
+             sh 'sudo npm install typescript -g'
              sh 'yarn install'
              
              }
@@ -19,8 +20,9 @@ pipeline {
         stage('yarn build') 
         {
             steps{
-             sh "yarn build "
+             sh "yarn build "    
              sh 'ls -la ./dist'
+ 
             //  sh 'sudo rm -r ./data'
              }
         } 
@@ -30,11 +32,12 @@ pipeline {
                 sh 'docker images --filter reference=sortlogback'
             }
         }
-       
       
-           
-        stage('TF Launch Instances for UAT'){
-        when{branch'uat'} 
+
+
+          
+        stage('TF Launch for UAT'){
+        when {branch 'uat'}    
                 steps {
                     withAWS(credentials: AWS_CRED, region: AWS_REGION) {
                    
@@ -43,7 +46,7 @@ pipeline {
                             export APP_ENV="uat"
                             terraform init -input=false
                             terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
-                            terraform apply \
+                            terraform destroy \
                                -var="app_env=${APP_ENV}"\
                                --auto-approve
                         '''
@@ -54,9 +57,9 @@ pipeline {
                                 }                 
                     }
                 }
-            }
+        }
         stage('Deliver for UAT') {
-            when{branch'uat'} 
+        when {branch 'uat'}
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION)   
                
@@ -75,11 +78,8 @@ pipeline {
         }
         
 
-
-      
-           
-        stage ('TF Launch Instances for PRODUCTION') {
-        when{branch'main'}
+        stage('TF Launch for PRODUCTION') {
+            when {branch 'main'}
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION) {
                    
@@ -101,7 +101,7 @@ pipeline {
             }
         }
         stage('Deliver for PRODUCTION') {
-        when{branch'main'} 
+            when {branch 'main'}
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION)   
                
