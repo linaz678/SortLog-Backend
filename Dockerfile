@@ -1,4 +1,3 @@
-# Install dependencies only when needed
 FROM node:16-alpine 
 #Next we create a directory to hold the application code inside the image
 WORKDIR /app
