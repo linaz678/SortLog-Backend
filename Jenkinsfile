@@ -124,8 +124,10 @@ pipeline {
             }
         }
         stage('TF destroy for PRODUCTION') {
-            when {expression{return params.tfDestroy}}
-            when {branch 'main'}
+            when {
+            branch 'main'
+            expression{return params.tfDestroy}
+            }
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION) {
                    
