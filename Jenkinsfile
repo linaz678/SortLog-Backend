@@ -7,6 +7,10 @@ pipeline {
         AWS_CRED        = 'AWS_sortlog' //Change to yours
         AWS_REGION      = 'ap-southeast-2'
     }
+        parameters {
+
+        booleanParam defaultValue: false, name: 'TFDestroy'
+    }
 
     stages{
         stage('Install dependency')
@@ -119,7 +123,29 @@ pipeline {
                 }
             }
         }
-        
+        stage('TF destroy for PRODUCTION') {
+            when {expression{return params.TFDestroy}}
+            when {branch 'main'}
+            steps {
+                withAWS(credentials: AWS_CRED, region: AWS_REGION) {
+                   
+                    
+                        sh '''
+                            export APP_ENV="production"
+                            terraform init -input=false
+                            terraform workspace select ${APP_ENV} || terraform workspace new ${APP_ENV}
+                            terraform destroy \
+                               -var="app_env=${APP_ENV}"\
+                               --auto-approve
+                        '''
+                         script {
+                                ECR_REPO_NAME = sh(returnStdout: true, script: "terraform output repository_url").trim()
+                                AWS_ECS_CLUSTER = sh(returnStdout: true, script: "terraform output ECS_Cluster_NAME").trim()
+                                AWS_ECS_SERVICE = sh(returnStdout: true, script: "terraform output ECS_Service_NAME").trim()
+                                }                 
+                }
+            }
+        }
 
         
 
