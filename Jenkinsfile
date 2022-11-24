@@ -9,7 +9,7 @@ pipeline {
     }
         parameters {
 
-        booleanParam defaultValue: false, name: 'TFDestroy'
+        booleanParam defaultValue: false, name: 'tfDestroy'
     }
 
     stages{
@@ -124,7 +124,7 @@ pipeline {
             }
         }
         stage('TF destroy for PRODUCTION') {
-            when {expression{return params.TFDestroy}}
+            when {expression{return params.tfDestroy}}
             when {branch 'main'}
             steps {
                 withAWS(credentials: AWS_CRED, region: AWS_REGION) {
