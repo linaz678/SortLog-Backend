@@ -34,13 +34,15 @@ historyRouter.get('/get/:id', async (req, res) => {
 
 // add new data
 historyRouter.post('/add', async (req, res) => {
-  const { trackingNumber, Date, items, changeQuantities, users } = req.body;
+  const { trackingNumber, Date, items, changeQuantities, users, type } = req.body;
 
   try {
     const result = await History.postHistory({ trackingNumber, Date, items, changeQuantities, users });
     items.forEach(async (item: any, index: any) => {
       const { _id } = item;
-      item.quantity = item.quantity + changeQuantities[index];
+      type === 'inbound'
+        ? (item.quantity = item.quantity + changeQuantities[index])
+        : (item.quantity = item.quantity - changeQuantities[index]);
       Item.putItem(_id, item);
     });
 
